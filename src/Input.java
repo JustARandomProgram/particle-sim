@@ -308,6 +308,21 @@ public class Input {
                 JOptionPane.showMessageDialog(App.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+        App.window.cameraSpeedField.addActionListener(e -> {
+            try {
+                double value = Double.valueOf(App.window.cameraSpeedField.getText());
+                if (value <= 0) {
+                    throw new IllegalArgumentException();
+                }
+                App.model.settings.put("Camera Speed", value);
+            } catch (NumberFormatException ex) {
+                App.window.cameraSpeedField.setText(String.valueOf(App.model.settings.get("Camera Speed")));
+                JOptionPane.showMessageDialog(App.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException ex) {
+                App.window.cameraSpeedField.setText(String.valueOf(App.model.settings.get("Camera Speed")));
+                JOptionPane.showMessageDialog(App.window, "Invalid Argument: Number cannot be negative or zero", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
         // ACTION MAP
         actionMap.put("destroy all particles", destroyAllAction);

@@ -21,7 +21,7 @@ public class Model {
     public Particle selectedParticle;
     public Point newParticlePos = new Point(0, 0);
     public Point initialVel = new Point(0, 0);
-
+    
     public class Particle {
         public double x, y;
         public double vx, vy;

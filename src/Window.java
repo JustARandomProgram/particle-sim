@@ -29,6 +29,8 @@ public class Window extends JFrame {
     public JButton centerButton;
     public JLabel elasticityLabel;
     public JLabel constantLabel;
+    public JLabel cameraSpeedLabel;
+    public JTextField cameraSpeedField;
     public JSlider elasticitySlider;
     public JTextField constantField;
 
@@ -122,6 +124,8 @@ public class Window extends JFrame {
         viewButton = new JButton("View: None");
         elasticityLabel = new JLabel("Elasticity: ");
         elasticitySlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 20);
+        cameraSpeedLabel = new JLabel("Camera Speed: ");
+        cameraSpeedField = new JTextField("10.0");
         constantLabel = new JLabel("Constant: ");
         constantField = new JTextField("50");
 
@@ -180,6 +184,18 @@ public class Window extends JFrame {
         gbc.gridwidth = 1;
         constantField.setFont(font);
         controlPanel.add(constantField,gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        cameraSpeedLabel.setFont(font);
+        controlPanel.add(cameraSpeedLabel,gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        cameraSpeedField.setFont(font);
+        controlPanel.add(cameraSpeedField,gbc);
 
         gbc.gridx = 2;
         gbc.gridy = 2;

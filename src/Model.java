@@ -7,21 +7,64 @@ import java.util.Random;
 import javax.swing.SwingWorker;
 
 public class Model {
-    public LinkedList<Particle> particles = new LinkedList<>();
-    public HashMap<String,Double> settings = new HashMap<>();
-    public Random random = new Random();
+    private LinkedList<Particle> particles = new LinkedList<>();
+    private HashMap<String,Double> settings = new HashMap<>();
+    private Random random = new Random();
 
     public Boolean paused = false;
     public Boolean stepping = false;
     public Boolean settingVel = false;
     public Boolean destroying = false;
     
-    public double mouseRadius = 10;
-    public Point cameraPos = new Point(-App.window.width/2, -App.window.height/2);
-    public Particle selectedParticle;
-    public Point newParticlePos = new Point(0, 0);
-    public Point initialVel = new Point(0, 0);
+    private double vectorMulti = 5;
+    private double mouseRadius = 10;
+    private Point cameraPos = new Point(-App.window.getWidth()/2, -App.window.getHeight()/2);
+    private Particle selectedParticle;
+    private Point newParticlePos = new Point(0, 0);
+    private Point initialVel = new Point(0, 0);
     
+    // GETTERS
+
+    public Point getCameraPos() {
+        return cameraPos;
+    }
+
+    public HashMap<String,Double> getSettingsMap() {
+        return settings;
+    }
+
+    public Point getNewParticlePos() {
+        return newParticlePos;
+    }
+
+    public Point getInitialVelocity() {
+        return initialVel;
+    }
+
+    public double getMouseRadius() {
+        return mouseRadius;
+    }
+
+    public LinkedList<Particle> getParticles() {
+        return particles;
+    }
+
+    public double getVectorMulti() {
+        return vectorMulti;
+    }
+
+    public Particle getSelectedParticle() {
+        return selectedParticle;
+    }
+
+    // SETTERS
+
+    public void setMouseRadius(double mouseRadius) {
+        this.mouseRadius = mouseRadius;
+    }
+
+    // PARTICLE CLASS
+
     public class Particle {
         public double x, y;
         public double vx, vy;
@@ -107,8 +150,8 @@ public class Model {
     //CALCULATIONS
 
     public void calculateInitialVel() {
-        initialVel.x = (int)((App.input.mousePos.x - newParticlePos.x + cameraPos.x) / App.window.vectorMulti);
-        initialVel.y = (int)((App.input.mousePos.y - newParticlePos.y + cameraPos.y) / App.window.vectorMulti);
+        initialVel.x = (int)((App.input.getMousePos().x - newParticlePos.x + cameraPos.x) / vectorMulti);
+        initialVel.y = (int)((App.input.getMousePos().y - newParticlePos.y + cameraPos.y) / vectorMulti);
     }
 
     //UPDATE
@@ -141,18 +184,19 @@ public class Model {
     }
     
     public void updateCameraPos(double delta) {
-        double speedMultiplier = App.input.movementMap.get(KeyEvent.VK_SHIFT) ? 3 : 1;
-        if (App.input.movementMap.get(KeyEvent.VK_A)) {
-            cameraPos.x -= App.model.settings.get("Camera Speed") * speedMultiplier;
+        HashMap<Integer,Boolean> movementMap = App.input.movementMap();
+        double speedMultiplier = movementMap.get(KeyEvent.VK_SHIFT) ? 3 : 1;
+        if (movementMap.get(KeyEvent.VK_A)) {
+            cameraPos.x -= settings.get("Camera Speed") * speedMultiplier;
         }
-        if (App.input.movementMap.get(KeyEvent.VK_S)) {
-            cameraPos.y += App.model.settings.get("Camera Speed") * speedMultiplier;
+        if (movementMap.get(KeyEvent.VK_S)) {
+            cameraPos.y += settings.get("Camera Speed") * speedMultiplier;
         }
-        if (App.input.movementMap.get(KeyEvent.VK_W)) {
-            cameraPos.y -= App.model.settings.get("Camera Speed") * speedMultiplier;
+        if (movementMap.get(KeyEvent.VK_W)) {
+            cameraPos.y -= settings.get("Camera Speed") * speedMultiplier;
         }
-        if (App.input.movementMap.get(KeyEvent.VK_D)) {
-            cameraPos.x += App.model.settings.get("Camera Speed") * speedMultiplier;
+        if (movementMap.get(KeyEvent.VK_D)) {
+            cameraPos.x += settings.get("Camera Speed") * speedMultiplier;
         }
     }
     
@@ -168,10 +212,16 @@ public class Model {
     
     public void attemptToDestroyNearbyParticles() {
         particles.removeIf(particle -> {
-            double dx = particle.x - (App.input.mousePos.x + cameraPos.x);
-            double dy = particle.y - (App.input.mousePos.y + cameraPos.y);
+            double dx = particle.x - (App.input.getMousePos().x + cameraPos.x);
+            double dy = particle.y - (App.input.getMousePos().y + cameraPos.y);
             double distance = Math.sqrt(dx*dx + dy*dy);
             return (distance - particle.radius) < mouseRadius;
+        });
+    }
+
+    public void destroyAllParticles() {
+        particles.removeIf(particle -> {
+            return true;
         });
     }
 
@@ -188,8 +238,8 @@ public class Model {
         Particle closestParticle = null;
         double closestDistance = Double.POSITIVE_INFINITY;
         for (Particle particle : particles) {
-            double dx = particle.x - (App.input.mousePos.x + cameraPos.x);
-            double dy = particle.y - (App.input.mousePos.y + cameraPos.y);
+            double dx = particle.x - (App.input.getMousePos().x + cameraPos.x);
+            double dy = particle.y - (App.input.getMousePos().y + cameraPos.y);
             double distance = Math.sqrt(dx*dx + dy*dy);
             if (distance < closestDistance) {
                 closestDistance = distance;

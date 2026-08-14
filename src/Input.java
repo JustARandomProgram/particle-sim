@@ -1,7 +1,6 @@
 import java.awt.Point;
 import java.awt.event.*;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -10,10 +9,26 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class Input {
-    public Point mousePos = new Point(0, 0);
-    public Boolean mouseVisible = false;
-    public int currentButton = MouseEvent.NOBUTTON;
-    public HashMap<Integer,Boolean> movementMap = new HashMap<>();
+    private Point mousePos = new Point(0, 0);
+    private Boolean mouseVisible = false;
+    private int currentButton = MouseEvent.NOBUTTON;
+    private HashMap<Integer,Boolean> movementMap = new HashMap<>();
+
+    // GETTERS
+
+    public Point getMousePos() {
+        return mousePos;
+    }
+
+    public Boolean isMouseVisible() {
+        return mouseVisible;
+    }
+
+    public HashMap<Integer,Boolean> movementMap() {
+        return movementMap;
+    }
+
+    // MOUSE INPUT
 
     public class MouseInput implements MouseMotionListener, MouseListener, MouseWheelListener {
 
@@ -34,19 +49,19 @@ public class Input {
         public void mouseReleased(MouseEvent e) {
             currentButton = MouseEvent.NOBUTTON;
             if (e.getButton() == MouseEvent.BUTTON1) {
-                if (App.model.selectedParticle != null) {
-                    App.model.initialVel.x += App.model.selectedParticle.vx;
-                    App.model.initialVel.y += App.model.selectedParticle.vy;
+                if (App.model.getSelectedParticle() != null) {
+                    App.model.getInitialVelocity().x += App.model.getSelectedParticle().vx;
+                    App.model.getInitialVelocity().y += App.model.getSelectedParticle().vy;
                 }
-                App.model.createParticle(App.model.newParticlePos.x, App.model.newParticlePos.y, App.model.initialVel.x, App.model.initialVel.y);
+                App.model.createParticle(App.model.getNewParticlePos().x, App.model.getNewParticlePos().y, App.model.getInitialVelocity().x, App.model.getInitialVelocity().y);
                 App.model.settingVel = false;
-                App.model.initialVel.x = 0;
-                App.model.initialVel.y = 0;
-                App.model.newParticlePos.x = mousePos.x + App.model.cameraPos.x;
-                App.model.newParticlePos.y = mousePos.y + App.model.cameraPos.y;
+                App.model.getInitialVelocity().x = 0;
+                App.model.getInitialVelocity().y = 0;
+                App.model.getNewParticlePos().x = mousePos.x + App.model.getCameraPos().x;
+                App.model.getNewParticlePos().y = mousePos.y + App.model.getCameraPos().y;
             } else if (e.getButton() == MouseEvent.BUTTON3) {
-                App.model.newParticlePos.x = mousePos.x + App.model.cameraPos.x;
-                App.model.newParticlePos.y = mousePos.y + App.model.cameraPos.y;
+                App.model.getNewParticlePos().x = mousePos.x + App.model.getCameraPos().x;
+                App.model.getNewParticlePos().y = mousePos.y + App.model.getCameraPos().y;
                 App.model.destroying = false;
             } else if (e.getButton() == MouseEvent.BUTTON2) {
                 App.model.selectClosestParticle();
@@ -71,7 +86,8 @@ public class Input {
             } else if (currentButton == MouseEvent.BUTTON3) {
                 App.model.attemptToDestroyNearbyParticles();
             } else if (e.getButton() == MouseEvent.BUTTON2) {
-                App.model.newParticlePos = mousePos;
+                App.model.getNewParticlePos().x = mousePos.x;
+                App.model.getNewParticlePos().y = mousePos.y;
             }
         }
 
@@ -84,18 +100,18 @@ public class Input {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
             if (e.isControlDown()) {
-                App.model.mouseRadius -= e.getPreciseWheelRotation() * 5;
+                App.model.setMouseRadius(App.model.getMouseRadius() - e.getPreciseWheelRotation() * 5);
             } else {
-                App.model.mouseRadius -= e.getPreciseWheelRotation();
+                App.model.setMouseRadius(App.model.getMouseRadius() - e.getPreciseWheelRotation());
             }
-            if (App.model.mouseRadius < 0.1) App.model.mouseRadius = 0.1;
+            if (App.model.getMouseRadius() < 0.1) App.model.setMouseRadius(0.1);
         }
 
     }
 
     public void updateNewParticlePos() {
-        App.model.newParticlePos.x = mousePos.x + App.model.cameraPos.x;
-        App.model.newParticlePos.y = mousePos.y + App.model.cameraPos.y;
+        App.model.getNewParticlePos().x = mousePos.x + App.model.getCameraPos().x;
+        App.model.getNewParticlePos().y = mousePos.y + App.model.getCameraPos().y;
     }
 
     Input() {
@@ -113,7 +129,7 @@ public class Input {
         movementMap.put(KeyEvent.VK_W, false);
         movementMap.put(KeyEvent.VK_D, false);
 
-        // BINDINGS
+        // KEYBINDINGS
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X,0), "destroy all particles");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0), "pause");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C,0), "step");
@@ -144,14 +160,14 @@ public class Input {
         AbstractAction destroyAllAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.model.particles = new LinkedList<>();
+                App.model.destroyAllParticles();
             }
         };
         AbstractAction returnAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.model.cameraPos.x = -App.window.width/2;
-                App.model.cameraPos.y = -App.window.height/2;
+                App.model.getCameraPos().x = -App.window.getWidth()/2;
+                App.model.getCameraPos().y = -App.window.getHeight()/2;
             }
         };
         AbstractAction startLeftAction = new AbstractAction() {
@@ -269,19 +285,19 @@ public class Input {
         AbstractAction toggleViewAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                switch (App.window.viewType) {
+                switch (App.window.getViewType()) {
                     case Window.ViewType.NONE:
-                        App.window.viewType = Window.ViewType.VELOCITY;
+                        App.window.setViewType(Window.ViewType.VELOCITY);
                         App.window.viewButton.setText("View: Vel");
                         break;
 
                     case Window.ViewType.VELOCITY:
-                        App.window.viewType = Window.ViewType.MOMENTUM;
+                        App.window.setViewType(Window.ViewType.MOMENTUM);
                         App.window.viewButton.setText("View: Mom");
                         break;
 
                     case Window.ViewType.MOMENTUM:
-                        App.window.viewType = Window.ViewType.NONE;
+                        App.window.setViewType(Window.ViewType.NONE);
                         App.window.viewButton.setText("View: None");
                         break;
                 
@@ -298,13 +314,13 @@ public class Input {
         App.window.viewButton.addActionListener(e -> {toggleViewAction.actionPerformed(e);});
         App.window.centerButton.addActionListener(e -> {returnAction.actionPerformed(e);});
         App.window.elasticitySlider.addChangeListener(e -> {
-            App.model.settings.put("Elasticity", App.window.elasticitySlider.getValue()/100.0);
+            App.model.getSettingsMap().put("Elasticity", App.window.elasticitySlider.getValue()/100.0);
         });
         App.window.constantField.addActionListener(e -> {
             try {
-                App.model.settings.put("Constant", Double.valueOf(App.window.constantField.getText()));
+                App.model.getSettingsMap().put("Constant", Double.valueOf(App.window.constantField.getText()));
             } catch (NumberFormatException ex) {
-                App.window.constantField.setText(String.valueOf(App.model.settings.get("Constant")));
+                App.window.constantField.setText(String.valueOf(App.model.getSettingsMap().get("Constant")));
                 JOptionPane.showMessageDialog(App.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -314,12 +330,12 @@ public class Input {
                 if (value <= 0) {
                     throw new IllegalArgumentException();
                 }
-                App.model.settings.put("Camera Speed", value);
+                App.model.getSettingsMap().put("Camera Speed", value);
             } catch (NumberFormatException ex) {
-                App.window.cameraSpeedField.setText(String.valueOf(App.model.settings.get("Camera Speed")));
+                App.window.cameraSpeedField.setText(String.valueOf(App.model.getSettingsMap().get("Camera Speed")));
                 JOptionPane.showMessageDialog(App.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (IllegalArgumentException ex) {
-                App.window.cameraSpeedField.setText(String.valueOf(App.model.settings.get("Camera Speed")));
+                App.window.cameraSpeedField.setText(String.valueOf(App.model.getSettingsMap().get("Camera Speed")));
                 JOptionPane.showMessageDialog(App.window, "Invalid Argument: Number cannot be negative or zero", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });

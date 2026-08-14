@@ -15,13 +15,12 @@ public class Window extends JFrame {
     public static enum ViewType {NONE(0),VELOCITY(1),MOMENTUM(2);
         ViewType(int type) {}}
 
-    public final int width, height;
+    private final int width, height;
+    private ViewType viewType = ViewType.NONE;
+    
     public Canvas canvas;
-    public ViewType viewType = ViewType.NONE;
-    public double vectorMulti = 5;
-
     public JDialog controlPanel;
-
+    
     public JButton playPauseButton;
     public JButton stepButton;
     public JButton clearButton;
@@ -33,6 +32,32 @@ public class Window extends JFrame {
     public JTextField cameraSpeedField;
     public JSlider elasticitySlider;
     public JTextField constantField;
+    
+    // GETTERS
+    
+    public Point getWindowDimensions() {
+        return new Point(this.width, this.height);
+    }
+
+    public int getWidth() {
+        return this.width;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+
+    public ViewType getViewType() {
+        return this.viewType;
+    }
+
+    // SETTERS
+
+    public void setViewType(ViewType viewType) {
+        this.viewType = viewType;
+    }
+
+    // CANVAS CLASS
 
     public class Canvas extends JPanel {
         @Override
@@ -46,51 +71,54 @@ public class Window extends JFrame {
             // GRID LINES
             g2d.setColor(new Color(46, 46, 46));
             int currentHundred;
-            for (currentHundred = App.model.cameraPos.x; currentHundred <= App.model.cameraPos.x + width; currentHundred++) {
+            for (currentHundred = App.model.getCameraPos().x; currentHundred <= App.model.getCameraPos().x + width; currentHundred++) {
                 if (currentHundred % (100) != 0) continue;
-                g2d.draw(new Line2D.Double(currentHundred - App.model.cameraPos.x, 0, currentHundred - App.model.cameraPos.x, height));
+                g2d.draw(new Line2D.Double(currentHundred - App.model.getCameraPos().x, 0, currentHundred - App.model.getCameraPos().x, height));
             }
-            for (currentHundred = App.model.cameraPos.y; currentHundred <= App.model.cameraPos.y + height; currentHundred++) {
+            for (currentHundred = App.model.getCameraPos().y; currentHundred <= App.model.getCameraPos().y + height; currentHundred++) {
                 if (currentHundred % (100) != 0) continue;
-                g2d.draw(new Line2D.Double(0, currentHundred - App.model.cameraPos.y, width, currentHundred - App.model.cameraPos.y));
+                g2d.draw(new Line2D.Double(0, currentHundred - App.model.getCameraPos().y, width, currentHundred - App.model.getCameraPos().y));
             }
             double centerCircleRadius = 15;
-            g2d.fill(new Ellipse2D.Double(-centerCircleRadius - App.model.cameraPos.x, -centerCircleRadius - App.model.cameraPos.y,2*centerCircleRadius,2*centerCircleRadius));
+            g2d.fill(new Ellipse2D.Double(-centerCircleRadius - App.model.getCameraPos().x, -centerCircleRadius - App.model.getCameraPos().y,2*centerCircleRadius,2*centerCircleRadius));
 
             // PARTICLES/VISUALS
-            for (Model.Particle particle : App.model.particles) {
+            for (Model.Particle particle : App.model.getParticles()) {
                 g2d.setColor(Color.WHITE);
-                g2d.fillOval((int)(particle.x - particle.radius - App.model.cameraPos.x), 
-                             (int)(particle.y - particle.radius - App.model.cameraPos.y), 
+                g2d.fillOval((int)(particle.x - particle.radius - App.model.getCameraPos().x), 
+                             (int)(particle.y - particle.radius - App.model.getCameraPos().y), 
                              (int)(particle.radius * 2), 
                              (int)(particle.radius * 2));
                 if (viewType == ViewType.VELOCITY) {
                     g2d.setColor(Color.BLUE);
-                    g2d.draw(new Line2D.Double(particle.x - App.model.cameraPos.x, particle.y - App.model.cameraPos.y, particle.x - App.model.cameraPos.x + particle.vx * vectorMulti, particle.y - App.model.cameraPos.y + particle.vy * vectorMulti));
+                    g2d.draw(new Line2D.Double(particle.x - App.model.getCameraPos().x, particle.y - App.model.getCameraPos().y, particle.x - App.model.getCameraPos().x + particle.vx * App.model.getVectorMulti(), particle.y - App.model.getCameraPos().y + particle.vy * App.model.getVectorMulti()));
                 } else if (viewType == ViewType.MOMENTUM) {
                     g2d.setColor(Color.GREEN);
-                    g2d.draw(new Line2D.Double(particle.x - App.model.cameraPos.x, particle.y - App.model.cameraPos.y, particle.x - App.model.cameraPos.x + particle.vx * particle.mass * vectorMulti, particle.y - App.model.cameraPos.y + particle.vy * particle.mass * vectorMulti));
+                    g2d.draw(new Line2D.Double(particle.x - App.model.getCameraPos().x, particle.y - App.model.getCameraPos().y, particle.x - App.model.getCameraPos().x + particle.vx * particle.mass * App.model.getVectorMulti(), particle.y - App.model.getCameraPos().y + particle.vy * particle.mass * App.model.getVectorMulti()));
                 }
             }
             if (App.model.settingVel) {
                 g2d.setColor(Color.BLUE);
-                g2d.draw(new Line2D.Double(App.input.mousePos.x, App.input.mousePos.y, App.model.newParticlePos.x - App.model.cameraPos.x, App.model.newParticlePos.y - App.model.cameraPos.y));
+                g2d.draw(new Line2D.Double(App.input.getMousePos().x, 
+                                           App.input.getMousePos().y, 
+                                           App.model.getNewParticlePos().x - App.model.getCameraPos().x, 
+                                           App.model.getNewParticlePos().y - App.model.getCameraPos().y));
             }
 
             // MOUSE
-            if (App.input.mouseVisible) {
+            if (App.input.isMouseVisible()) {
                 if (App.model.destroying) {
                     g2d.setColor(new Color(255, 10, 10, 128));
-                    g2d.fillOval((int)(App.input.mousePos.x - App.model.mouseRadius), 
-                                (int)(App.input.mousePos.y - App.model.mouseRadius), 
-                                (int)(App.model.mouseRadius*2.0), 
-                                (int)(App.model.mouseRadius*2.0));
+                    g2d.fillOval((int)(App.input.getMousePos().x - App.model.getMouseRadius()), 
+                                (int)(App.input.getMousePos().y - App.model.getMouseRadius()), 
+                                (int)(App.model.getMouseRadius()*2.0), 
+                                (int)(App.model.getMouseRadius()*2.0));
                 } else {
                     g2d.setColor(new Color(10, 255, 10, 128));
-                    g2d.fillOval((int)(App.model.newParticlePos.x - App.model.mouseRadius - App.model.cameraPos.x), 
-                                (int)(App.model.newParticlePos.y - App.model.mouseRadius - App.model.cameraPos.y), 
-                                (int)(App.model.mouseRadius*2.0), 
-                                (int)(App.model.mouseRadius*2.0));
+                    g2d.fillOval((int)(App.model.getNewParticlePos().x - App.model.getMouseRadius() - App.model.getCameraPos().x), 
+                                (int)(App.model.getNewParticlePos().y - App.model.getMouseRadius() - App.model.getCameraPos().y), 
+                                (int)(App.model.getMouseRadius()*2.0), 
+                                (int)(App.model.getMouseRadius()*2.0));
                 }
             }
         }

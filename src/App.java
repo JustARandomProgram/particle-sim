@@ -10,10 +10,10 @@ public class App {
         SwingUtilities.invokeLater(() -> {
             window = new Window(900,900,60);
             model = new Model();
-            model.settings.put("Constant", 50.0);
-            model.settings.put("Elasticity", 0.2);
-            model.settings.put("Terminal Velocity", 100.0);
-            model.settings.put("Camera Speed", 10.0);
+            model.getSettingsMap().put("Constant", 50.0);
+            model.getSettingsMap().put("Elasticity", 0.2);
+            model.getSettingsMap().put("Terminal Velocity", 100.0);
+            model.getSettingsMap().put("Camera Speed", 10.0);
             input = new Input();
             window.setVisible(true);
 

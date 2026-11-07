@@ -8,7 +8,7 @@ import javax.swing.InputMap;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
-public class Input {
+public class Input implements MouseMotionListener, MouseListener, MouseWheelListener {
     private Point mousePos = new Point(0, 0);
     private Boolean mouseVisible = false;
     private int currentButton = MouseEvent.NOBUTTON;
@@ -29,84 +29,79 @@ public class Input {
     }
 
     // MOUSE INPUT
-
-    public class MouseInput implements MouseMotionListener, MouseListener, MouseWheelListener {
-
-        @Override
-        public void mouseClicked(MouseEvent e) {}
-        
-        @Override
-        public void mousePressed(MouseEvent e) {
-            currentButton = e.getButton();
-            if (currentButton == MouseEvent.BUTTON1) {
-                App.controller.model.settingVel = true;
-            } else if (currentButton == MouseEvent.BUTTON3) {
-                App.controller.model.destroying = true;
+    @Override
+    public void mouseClicked(MouseEvent e) {}
+    
+    @Override
+    public void mousePressed(MouseEvent e) {
+        currentButton = e.getButton();
+        if (currentButton == MouseEvent.BUTTON1) {
+            App.controller.model.settingVel = true;
+        } else if (currentButton == MouseEvent.BUTTON3) {
+            App.controller.model.destroying = true;
+        }
+    }
+    
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        currentButton = MouseEvent.NOBUTTON;
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            if (App.controller.model.getSelectedParticle() != null) {
+                App.controller.model.getInitialVelocity().x += App.controller.model.getSelectedParticle().vx;
+                App.controller.model.getInitialVelocity().y += App.controller.model.getSelectedParticle().vy;
             }
+            App.controller.model.createParticle(App.controller.model.getNewParticlePos().x, App.controller.model.getNewParticlePos().y, App.controller.model.getInitialVelocity().x, App.controller.model.getInitialVelocity().y);
+            App.controller.model.settingVel = false;
+            App.controller.model.getInitialVelocity().x = 0;
+            App.controller.model.getInitialVelocity().y = 0;
+            App.controller.model.getNewParticlePos().x = mousePos.x + App.controller.model.getCameraPos().x;
+            App.controller.model.getNewParticlePos().y = mousePos.y + App.controller.model.getCameraPos().y;
+        } else if (e.getButton() == MouseEvent.BUTTON3) {
+            App.controller.model.getNewParticlePos().x = mousePos.x + App.controller.model.getCameraPos().x;
+            App.controller.model.getNewParticlePos().y = mousePos.y + App.controller.model.getCameraPos().y;
+            App.controller.model.destroying = false;
+        } else if (e.getButton() == MouseEvent.BUTTON2) {
+            App.controller.model.selectClosestParticle();
         }
-        
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            currentButton = MouseEvent.NOBUTTON;
-            if (e.getButton() == MouseEvent.BUTTON1) {
-                if (App.controller.model.getSelectedParticle() != null) {
-                    App.controller.model.getInitialVelocity().x += App.controller.model.getSelectedParticle().vx;
-                    App.controller.model.getInitialVelocity().y += App.controller.model.getSelectedParticle().vy;
-                }
-                App.controller.model.createParticle(App.controller.model.getNewParticlePos().x, App.controller.model.getNewParticlePos().y, App.controller.model.getInitialVelocity().x, App.controller.model.getInitialVelocity().y);
-                App.controller.model.settingVel = false;
-                App.controller.model.getInitialVelocity().x = 0;
-                App.controller.model.getInitialVelocity().y = 0;
-                App.controller.model.getNewParticlePos().x = mousePos.x + App.controller.model.getCameraPos().x;
-                App.controller.model.getNewParticlePos().y = mousePos.y + App.controller.model.getCameraPos().y;
-            } else if (e.getButton() == MouseEvent.BUTTON3) {
-                App.controller.model.getNewParticlePos().x = mousePos.x + App.controller.model.getCameraPos().x;
-                App.controller.model.getNewParticlePos().y = mousePos.y + App.controller.model.getCameraPos().y;
-                App.controller.model.destroying = false;
-            } else if (e.getButton() == MouseEvent.BUTTON2) {
-                App.controller.model.selectClosestParticle();
-            }
-        }
+    }
 
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            mouseVisible = true;
-        }
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        mouseVisible = true;
+    }
 
-        @Override
-        public void mouseExited(MouseEvent e) {
-            mouseVisible = false;
-        }
+    @Override
+    public void mouseExited(MouseEvent e) {
+        mouseVisible = false;
+    }
 
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            mousePos = e.getPoint();
-            if (currentButton == MouseEvent.BUTTON1) {
-                App.controller.model.calculateInitialVel();
-            } else if (currentButton == MouseEvent.BUTTON3) {
-                App.controller.model.attemptToDestroyNearbyParticles();
-            } else if (e.getButton() == MouseEvent.BUTTON2) {
-                App.controller.model.getNewParticlePos().x = mousePos.x;
-                App.controller.model.getNewParticlePos().y = mousePos.y;
-            }
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        mousePos = e.getPoint();
+        if (currentButton == MouseEvent.BUTTON1) {
+            App.controller.model.calculateInitialVel();
+        } else if (currentButton == MouseEvent.BUTTON3) {
+            App.controller.model.attemptToDestroyNearbyParticles();
+        } else if (e.getButton() == MouseEvent.BUTTON2) {
+            App.controller.model.getNewParticlePos().x = mousePos.x;
+            App.controller.model.getNewParticlePos().y = mousePos.y;
         }
+    }
 
-        @Override
-        public void mouseMoved(MouseEvent e) {
-            mousePos = e.getPoint();
-            updateNewParticlePos();
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        mousePos = e.getPoint();
+        updateNewParticlePos();
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if (e.isControlDown()) {
+            App.controller.model.setMouseRadius(App.controller.model.getMouseRadius() - e.getPreciseWheelRotation() * 5);
+        } else {
+            App.controller.model.setMouseRadius(App.controller.model.getMouseRadius() - e.getPreciseWheelRotation());
         }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            if (e.isControlDown()) {
-                App.controller.model.setMouseRadius(App.controller.model.getMouseRadius() - e.getPreciseWheelRotation() * 5);
-            } else {
-                App.controller.model.setMouseRadius(App.controller.model.getMouseRadius() - e.getPreciseWheelRotation());
-            }
-            if (App.controller.model.getMouseRadius() < 0.1) App.controller.model.setMouseRadius(0.1);
-        }
-
+        if (App.controller.model.getMouseRadius() < 0.1) App.controller.model.setMouseRadius(0.1);
     }
 
     public void updateNewParticlePos() {
@@ -114,13 +109,7 @@ public class Input {
         App.controller.model.getNewParticlePos().y = mousePos.y + App.controller.model.getCameraPos().y;
     }
 
-    public void init() {
-        InputMap inputMap = App.controller.window.canvas.getInputMap();
-        ActionMap actionMap = App.controller.window.canvas.getActionMap();
-        MouseInput mouseInput = new MouseInput();
-        App.controller.window.canvas.addMouseListener(mouseInput);
-        App.controller.window.canvas.addMouseMotionListener(mouseInput);
-        App.controller.window.canvas.addMouseWheelListener(mouseInput);
+    public void init(InputMap inputMap, ActionMap actionMap) {
         
         // MOVEMENT MAP
         movementMap.put(KeyEvent.VK_SHIFT, false);
@@ -134,6 +123,7 @@ public class Input {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0), "pause");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C,0), "step");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V,0), "toggle view");
+
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,0), "start left");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,0), "start down");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,0), "start up");
@@ -142,6 +132,31 @@ public class Input {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK), "start down");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK), "start up");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK), "start right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.CTRL_DOWN_MASK), "start left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK), "start down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.CTRL_DOWN_MASK), "start up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.CTRL_DOWN_MASK), "start right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK), "start left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK), "start down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK), "start up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK), "start right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.ALT_DOWN_MASK), "start left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.ALT_DOWN_MASK), "start down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.ALT_DOWN_MASK), "start up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.ALT_DOWN_MASK), "start right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start right");
+
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,0,true), "end left");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,0,true), "end down");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,0,true), "end up");
@@ -150,213 +165,43 @@ public class Input {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK,true), "end down");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK,true), "end up");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK,true), "end right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.CTRL_DOWN_MASK,true), "end left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK,true), "end down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.CTRL_DOWN_MASK,true), "end up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.CTRL_DOWN_MASK,true), "end right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK,true), "end left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK,true), "end down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK,true), "end up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK,true), "end right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.ALT_DOWN_MASK,true), "end left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.ALT_DOWN_MASK,true), "end down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.ALT_DOWN_MASK,true), "end up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.ALT_DOWN_MASK,true), "end right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end right");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end left");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end down");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK|InputEvent.ALT_DOWN_MASK,true), "end right");
+
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK), "start speed up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK), "start speed up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK), "start speed up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.SHIFT_DOWN_MASK|InputEvent.ALT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK), "start speed up");
+
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,0, true), "end speed up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.ALT_DOWN_MASK, true), "end speed up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.CTRL_DOWN_MASK, true), "end speed up");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT,InputEvent.ALT_DOWN_MASK|InputEvent.CTRL_DOWN_MASK, true), "end speed up");
+
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.ALT_DOWN_MASK), "return");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 0),"open keybinds");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0),"open control panel");
-
-        // ACTIONS
-        AbstractAction destroyAllAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                App.controller.model.destroyAllParticles();
-            }
-        };
-        AbstractAction returnAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                App.controller.model.getCameraPos().x = -App.controller.window.getWidth()/2;
-                App.controller.model.getCameraPos().y = -App.controller.window.getHeight()/2;
-            }
-        };
-        AbstractAction startLeftAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_A, true);
-            }
-        };
-        AbstractAction startDownAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_S, true);
-            }
-        };
-        AbstractAction startUpAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_W, true);
-            }
-        };
-        AbstractAction startRightAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_D, true);
-            }
-        };
-        AbstractAction startSpeedUpAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_SHIFT, true);
-            }
-        };
-        AbstractAction endLeftAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_A, false);
-            }
-        };
-        AbstractAction endDownAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_S, false);
-            }
-        };
-        AbstractAction endUpAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_W, false);
-            }
-        };
-        AbstractAction endRightAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_D, false);
-            }
-        };
-        AbstractAction endSpeedUpAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                movementMap.put(KeyEvent.VK_SHIFT, false);
-            }
-        };
-        AbstractAction pauseAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                App.controller.model.paused = !App.controller.model.paused;
-                 if (App.controller.model.paused) {
-                    App.controller.window.playPauseButton.setText("Play");
-                } else {
-                    App.controller.window.playPauseButton.setText("Pause");
-                }
-            }
-        };
-        AbstractAction stepAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                App.controller.model.stepping = true;
-                App.controller.model.update(1);
-                App.controller.model.stepping = false;
-            }
-        };
-        AbstractAction openKeybindsAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String message = """
-                                A/S/W/D - Movement
-                                Shift - Speed Up
-                                Space - Pause/Play
-                                C - Step
-                                X - Clear All Particles
-                                Alt + Q - Center to 0, 0
-                                V - Toggle Particle View Mode
-                                Scroll - Changes particle size/Changes mouse radius
-                                L-Click - Creates a particle
-                                Drag L-Click - Creates a particle with velocity
-                                R-Click - Deletes nearby particles
-                                M-Click - Follows a nearby particle
-                                / - Opens this menu
-                                G - Opens control menu
-                                """;
-                JOptionPane.showMessageDialog(App.controller.window, message, "Keybinds", JOptionPane.INFORMATION_MESSAGE);
-            }
-        };
-        AbstractAction openControlPanelAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                App.controller.window.controlPanel.setVisible(true);
-                if (App.controller.model.paused) {
-                    App.controller.window.playPauseButton.setText("Play");
-                } else {
-                    App.controller.window.playPauseButton.setText("Pause");
-                }
-            }
-        };
-        AbstractAction toggleViewAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                switch (App.controller.window.getViewType()) {
-                    case Window.ViewType.NONE:
-                        App.controller.window.setViewType(Window.ViewType.VELOCITY);
-                        App.controller.window.viewButton.setText("View: Vel");
-                        break;
-
-                    case Window.ViewType.VELOCITY:
-                        App.controller.window.setViewType(Window.ViewType.MOMENTUM);
-                        App.controller.window.viewButton.setText("View: Mom");
-                        break;
-
-                    case Window.ViewType.MOMENTUM:
-                        App.controller.window.setViewType(Window.ViewType.NONE);
-                        App.controller.window.viewButton.setText("View: None");
-                        break;
-                
-                    default:
-                        break;
-                }
-            }
-        };
-
-        // BUTTON BINDINGS
-        App.controller.window.playPauseButton.addActionListener(e -> {pauseAction.actionPerformed(e);});
-        App.controller.window.stepButton.addActionListener(e -> {stepAction.actionPerformed(e);});
-        App.controller.window.clearButton.addActionListener(e -> {destroyAllAction.actionPerformed(e);});
-        App.controller.window.viewButton.addActionListener(e -> {toggleViewAction.actionPerformed(e);});
-        App.controller.window.centerButton.addActionListener(e -> {returnAction.actionPerformed(e);});
-        App.controller.window.elasticitySlider.addChangeListener(e -> {
-            App.controller.model.getSettingsMap().put("Elasticity", App.controller.window.elasticitySlider.getValue()/100.0);
-        });
-        App.controller.window.constantField.addActionListener(e -> {
-            try {
-                App.controller.model.getSettingsMap().put("Constant", Double.valueOf(App.controller.window.constantField.getText()));
-            } catch (NumberFormatException ex) {
-                App.controller.window.constantField.setText(String.valueOf(App.controller.model.getSettingsMap().get("Constant")));
-                JOptionPane.showMessageDialog(App.controller.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        App.controller.window.cameraSpeedField.addActionListener(e -> {
-            try {
-                double value = Double.valueOf(App.controller.window.cameraSpeedField.getText());
-                if (value <= 0) {
-                    throw new IllegalArgumentException();
-                }
-                App.controller.model.getSettingsMap().put("Camera Speed", value);
-            } catch (NumberFormatException ex) {
-                App.controller.window.cameraSpeedField.setText(String.valueOf(App.controller.model.getSettingsMap().get("Camera Speed")));
-                JOptionPane.showMessageDialog(App.controller.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (IllegalArgumentException ex) {
-                App.controller.window.cameraSpeedField.setText(String.valueOf(App.controller.model.getSettingsMap().get("Camera Speed")));
-                JOptionPane.showMessageDialog(App.controller.window, "Invalid Argument: Number cannot be negative or zero", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        // ACTION MAP
-        actionMap.put("destroy all particles", destroyAllAction);
-        actionMap.put("return", returnAction);
-        actionMap.put("start left", startLeftAction);
-        actionMap.put("start down", startDownAction);
-        actionMap.put("start up", startUpAction);
-        actionMap.put("start right", startRightAction);
-        actionMap.put("start speed up", startSpeedUpAction);
-        actionMap.put("end left", endLeftAction);
-        actionMap.put("end down", endDownAction);
-        actionMap.put("end up", endUpAction);
-        actionMap.put("end right", endRightAction);
-        actionMap.put("end speed up", endSpeedUpAction);
-        actionMap.put("pause", pauseAction);
-        actionMap.put("step", stepAction);
-        actionMap.put("toggle view", toggleViewAction);
-        actionMap.put("open keybinds", openKeybindsAction);
-        actionMap.put("open control panel", openControlPanelAction);
     }
 }

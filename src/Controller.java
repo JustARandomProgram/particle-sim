@@ -62,14 +62,14 @@ public class Controller {
         AbstractAction destroyAllAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.controller.model.destroyAllParticles();
+                model.destroyAllParticles();
             }
         };
         AbstractAction returnAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.controller.model.getCameraPos().x = -App.controller.window.getWidth()/2;
-                App.controller.model.getCameraPos().y = -App.controller.window.getHeight()/2;
+                model.getCameraPos().x = -window.getWidth()/2;
+                model.getCameraPos().y = -window.getHeight()/2;
             }
         };
         AbstractAction startLeftAction = new AbstractAction() {
@@ -135,20 +135,20 @@ public class Controller {
         AbstractAction pauseAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.controller.model.paused = !App.controller.model.paused;
-                 if (App.controller.model.paused) {
-                    App.controller.window.playPauseButton.setText("Play");
+                model.paused = !model.paused;
+                 if (model.paused) {
+                    window.playPauseButton.setText("Play");
                 } else {
-                    App.controller.window.playPauseButton.setText("Pause");
+                    window.playPauseButton.setText("Pause");
                 }
             }
         };
         AbstractAction stepAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.controller.model.stepping = true;
-                App.controller.model.update(1);
-                App.controller.model.stepping = false;
+                model.stepping = true;
+                model.update(1);
+                model.stepping = false;
             }
         };
         AbstractAction openKeybindsAction = new AbstractAction() {
@@ -170,37 +170,37 @@ public class Controller {
                                 / - Opens this menu
                                 G - Opens control menu
                                 """;
-                JOptionPane.showMessageDialog(App.controller.window, message, "Keybinds", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(window, message, "Keybinds", JOptionPane.INFORMATION_MESSAGE);
             }
         };
         AbstractAction openControlPanelAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                App.controller.window.controlPanel.setVisible(true);
-                if (App.controller.model.paused) {
-                    App.controller.window.playPauseButton.setText("Play");
+                window.controlPanel.setVisible(true);
+                if (model.paused) {
+                    window.playPauseButton.setText("Play");
                 } else {
-                    App.controller.window.playPauseButton.setText("Pause");
+                    window.playPauseButton.setText("Pause");
                 }
             }
         };
         AbstractAction toggleViewAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                switch (App.controller.window.getViewType()) {
+                switch (window.getViewType()) {
                     case Window.ViewType.NONE:
-                        App.controller.window.setViewType(Window.ViewType.VELOCITY);
-                        App.controller.window.viewButton.setText("View: Vel");
+                        window.setViewType(Window.ViewType.VELOCITY);
+                        window.viewButton.setText("View: Vel");
                         break;
 
                     case Window.ViewType.VELOCITY:
-                        App.controller.window.setViewType(Window.ViewType.MOMENTUM);
-                        App.controller.window.viewButton.setText("View: Mom");
+                        window.setViewType(Window.ViewType.MOMENTUM);
+                        window.viewButton.setText("View: Mom");
                         break;
 
                     case Window.ViewType.MOMENTUM:
-                        App.controller.window.setViewType(Window.ViewType.NONE);
-                        App.controller.window.viewButton.setText("View: None");
+                        window.setViewType(Window.ViewType.NONE);
+                        window.viewButton.setText("View: None");
                         break;
                 
                     default:
@@ -210,35 +210,35 @@ public class Controller {
         };
 
         // BUTTON BINDINGS
-        App.controller.window.playPauseButton.addActionListener(e -> {pauseAction.actionPerformed(e);});
-        App.controller.window.stepButton.addActionListener(e -> {stepAction.actionPerformed(e);});
-        App.controller.window.clearButton.addActionListener(e -> {destroyAllAction.actionPerformed(e);});
-        App.controller.window.viewButton.addActionListener(e -> {toggleViewAction.actionPerformed(e);});
-        App.controller.window.centerButton.addActionListener(e -> {returnAction.actionPerformed(e);});
-        App.controller.window.elasticitySlider.addChangeListener(e -> {
-            App.controller.model.getSettingsMap().put("Elasticity", App.controller.window.elasticitySlider.getValue()/100.0);
+        window.playPauseButton.addActionListener(e -> {pauseAction.actionPerformed(e);});
+        window.stepButton.addActionListener(e -> {stepAction.actionPerformed(e);});
+        window.clearButton.addActionListener(e -> {destroyAllAction.actionPerformed(e);});
+        window.viewButton.addActionListener(e -> {toggleViewAction.actionPerformed(e);});
+        window.centerButton.addActionListener(e -> {returnAction.actionPerformed(e);});
+        window.elasticitySlider.addChangeListener(e -> {
+            model.getSettingsMap().put("Elasticity", window.elasticitySlider.getValue()/100.0);
         });
-        App.controller.window.constantField.addActionListener(e -> {
+        window.constantField.addActionListener(e -> {
             try {
-                App.controller.model.getSettingsMap().put("Constant", Double.valueOf(App.controller.window.constantField.getText()));
+                model.getSettingsMap().put("Constant", Double.valueOf(window.constantField.getText()));
             } catch (NumberFormatException ex) {
-                App.controller.window.constantField.setText(String.valueOf(App.controller.model.getSettingsMap().get("Constant")));
-                JOptionPane.showMessageDialog(App.controller.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
+                window.constantField.setText(String.valueOf(model.getSettingsMap().get("Constant")));
+                JOptionPane.showMessageDialog(window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-        App.controller.window.cameraSpeedField.addActionListener(e -> {
+        window.cameraSpeedField.addActionListener(e -> {
             try {
-                double value = Double.valueOf(App.controller.window.cameraSpeedField.getText());
+                double value = Double.valueOf(window.cameraSpeedField.getText());
                 if (value <= 0) {
                     throw new IllegalArgumentException();
                 }
-                App.controller.model.getSettingsMap().put("Camera Speed", value);
+                model.getSettingsMap().put("Camera Speed", value);
             } catch (NumberFormatException ex) {
-                App.controller.window.cameraSpeedField.setText(String.valueOf(App.controller.model.getSettingsMap().get("Camera Speed")));
-                JOptionPane.showMessageDialog(App.controller.window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
+                window.cameraSpeedField.setText(String.valueOf(model.getSettingsMap().get("Camera Speed")));
+                JOptionPane.showMessageDialog(window, "Invalid Argument", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (IllegalArgumentException ex) {
-                App.controller.window.cameraSpeedField.setText(String.valueOf(App.controller.model.getSettingsMap().get("Camera Speed")));
-                JOptionPane.showMessageDialog(App.controller.window, "Invalid Argument: Number cannot be negative or zero", "Error", JOptionPane.ERROR_MESSAGE);
+                window.cameraSpeedField.setText(String.valueOf(model.getSettingsMap().get("Camera Speed")));
+                JOptionPane.showMessageDialog(window, "Invalid Argument: Number cannot be negative or zero", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

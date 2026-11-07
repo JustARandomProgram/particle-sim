@@ -5,7 +5,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
-import javax.swing.Timer;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
@@ -13,7 +12,8 @@ import java.awt.geom.Line2D;
 
 public class Window extends JFrame {
     public static enum ViewType {NONE(0),VELOCITY(1),MOMENTUM(2);
-        ViewType(int type) {}}
+        ViewType(int type) {}
+    }
 
     private final int width, height;
     private ViewType viewType = ViewType.NONE;
@@ -71,62 +71,65 @@ public class Window extends JFrame {
             // GRID LINES
             g2d.setColor(new Color(46, 46, 46));
             int currentHundred;
-            for (currentHundred = App.model.getCameraPos().x; currentHundred <= App.model.getCameraPos().x + width; currentHundred++) {
+            for (currentHundred = App.controller.model.getCameraPos().x; currentHundred <= App.controller.model.getCameraPos().x + width; currentHundred++) {
                 if (currentHundred % (100) != 0) continue;
-                g2d.draw(new Line2D.Double(currentHundred - App.model.getCameraPos().x, 0, currentHundred - App.model.getCameraPos().x, height));
+                g2d.draw(new Line2D.Double(currentHundred - App.controller.model.getCameraPos().x, 0, currentHundred - App.controller.model.getCameraPos().x, height));
             }
-            for (currentHundred = App.model.getCameraPos().y; currentHundred <= App.model.getCameraPos().y + height; currentHundred++) {
+            for (currentHundred = App.controller.model.getCameraPos().y; currentHundred <= App.controller.model.getCameraPos().y + height; currentHundred++) {
                 if (currentHundred % (100) != 0) continue;
-                g2d.draw(new Line2D.Double(0, currentHundred - App.model.getCameraPos().y, width, currentHundred - App.model.getCameraPos().y));
+                g2d.draw(new Line2D.Double(0, currentHundred - App.controller.model.getCameraPos().y, width, currentHundred - App.controller.model.getCameraPos().y));
             }
             double centerCircleRadius = 15;
-            g2d.fill(new Ellipse2D.Double(-centerCircleRadius - App.model.getCameraPos().x, -centerCircleRadius - App.model.getCameraPos().y,2*centerCircleRadius,2*centerCircleRadius));
+            g2d.fill(new Ellipse2D.Double(-centerCircleRadius - App.controller.model.getCameraPos().x, -centerCircleRadius - App.controller.model.getCameraPos().y,2*centerCircleRadius,2*centerCircleRadius));
 
             // PARTICLES/VISUALS
-            for (Model.Particle particle : App.model.getParticles()) {
+            for (Model.Particle particle : App.controller.model.getParticles()) {
                 g2d.setColor(Color.WHITE);
-                g2d.fillOval((int)(particle.x - particle.radius - App.model.getCameraPos().x), 
-                             (int)(particle.y - particle.radius - App.model.getCameraPos().y), 
+                g2d.fillOval((int)(particle.x - particle.radius - App.controller.model.getCameraPos().x), 
+                             (int)(particle.y - particle.radius - App.controller.model.getCameraPos().y), 
                              (int)(particle.radius * 2), 
                              (int)(particle.radius * 2));
                 if (viewType == ViewType.VELOCITY) {
                     g2d.setColor(Color.BLUE);
-                    g2d.draw(new Line2D.Double(particle.x - App.model.getCameraPos().x, particle.y - App.model.getCameraPos().y, particle.x - App.model.getCameraPos().x + particle.vx * App.model.getVectorMulti(), particle.y - App.model.getCameraPos().y + particle.vy * App.model.getVectorMulti()));
+                    g2d.draw(new Line2D.Double(particle.x - App.controller.model.getCameraPos().x, particle.y - App.controller.model.getCameraPos().y, particle.x - App.controller.model.getCameraPos().x + particle.vx * App.controller.model.getVectorMulti(), particle.y - App.controller.model.getCameraPos().y + particle.vy * App.controller.model.getVectorMulti()));
                 } else if (viewType == ViewType.MOMENTUM) {
                     g2d.setColor(Color.GREEN);
-                    g2d.draw(new Line2D.Double(particle.x - App.model.getCameraPos().x, particle.y - App.model.getCameraPos().y, particle.x - App.model.getCameraPos().x + particle.vx * particle.mass * App.model.getVectorMulti(), particle.y - App.model.getCameraPos().y + particle.vy * particle.mass * App.model.getVectorMulti()));
+                    g2d.draw(new Line2D.Double(particle.x - App.controller.model.getCameraPos().x, particle.y - App.controller.model.getCameraPos().y, particle.x - App.controller.model.getCameraPos().x + particle.vx * particle.mass * App.controller.model.getVectorMulti(), particle.y - App.controller.model.getCameraPos().y + particle.vy * particle.mass * App.controller.model.getVectorMulti()));
                 }
             }
-            if (App.model.settingVel) {
+            if (App.controller.model.settingVel) {
                 g2d.setColor(Color.BLUE);
-                g2d.draw(new Line2D.Double(App.input.getMousePos().x, 
-                                           App.input.getMousePos().y, 
-                                           App.model.getNewParticlePos().x - App.model.getCameraPos().x, 
-                                           App.model.getNewParticlePos().y - App.model.getCameraPos().y));
+                g2d.draw(new Line2D.Double(App.controller.input.getMousePos().x, 
+                                           App.controller.input.getMousePos().y, 
+                                           App.controller.model.getNewParticlePos().x - App.controller.model.getCameraPos().x, 
+                                           App.controller.model.getNewParticlePos().y - App.controller.model.getCameraPos().y));
             }
 
             // MOUSE
-            if (App.input.isMouseVisible()) {
-                if (App.model.destroying) {
+            if (App.controller.input.isMouseVisible()) {
+                if (App.controller.model.destroying) {
                     g2d.setColor(new Color(255, 10, 10, 128));
-                    g2d.fillOval((int)(App.input.getMousePos().x - App.model.getMouseRadius()), 
-                                (int)(App.input.getMousePos().y - App.model.getMouseRadius()), 
-                                (int)(App.model.getMouseRadius()*2.0), 
-                                (int)(App.model.getMouseRadius()*2.0));
+                    g2d.fillOval((int)(App.controller.input.getMousePos().x - App.controller.model.getMouseRadius()), 
+                                (int)(App.controller.input.getMousePos().y - App.controller.model.getMouseRadius()), 
+                                (int)(App.controller.model.getMouseRadius()*2.0), 
+                                (int)(App.controller.model.getMouseRadius()*2.0));
                 } else {
                     g2d.setColor(new Color(10, 255, 10, 128));
-                    g2d.fillOval((int)(App.model.getNewParticlePos().x - App.model.getMouseRadius() - App.model.getCameraPos().x), 
-                                (int)(App.model.getNewParticlePos().y - App.model.getMouseRadius() - App.model.getCameraPos().y), 
-                                (int)(App.model.getMouseRadius()*2.0), 
-                                (int)(App.model.getMouseRadius()*2.0));
+                    g2d.fillOval((int)(App.controller.model.getNewParticlePos().x - App.controller.model.getMouseRadius() - App.controller.model.getCameraPos().x), 
+                                (int)(App.controller.model.getNewParticlePos().y - App.controller.model.getMouseRadius() - App.controller.model.getCameraPos().y), 
+                                (int)(App.controller.model.getMouseRadius()*2.0), 
+                                (int)(App.controller.model.getMouseRadius()*2.0));
                 }
             }
         }
     }
 
-    Window(int width, int height, int fps) {
+    Window(int width, int height) {
         this.width = width;
         this.height = height;
+    }
+
+    public void init() {
         setTitle("Particle Sim");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
@@ -232,12 +235,5 @@ public class Window extends JFrame {
         controlPanel.add(centerButton,gbc);
 
         controlPanel.pack();
-
-        // UPDATE LOOP
-        Timer clock = new Timer((int)(1/fps * 1000.0), e -> {
-            App.model.update(1);
-            canvas.repaint();
-        });
-        clock.start();
     }
 }

@@ -18,11 +18,15 @@ public class Model {
     
     private double vectorMulti = 5;
     private double mouseRadius = 10;
-    private Point cameraPos = new Point(-App.window.getWidth()/2, -App.window.getHeight()/2);
+    private Point cameraPos;
     private Particle selectedParticle;
     private Point newParticlePos = new Point(0, 0);
     private Point initialVel = new Point(0, 0);
     
+    public void init() {
+        cameraPos = new Point(-App.controller.window.getWidth()/2, -App.controller.window.getHeight()/2);
+    }
+
     // GETTERS
 
     public Point getCameraPos() {
@@ -150,8 +154,8 @@ public class Model {
     //CALCULATIONS
 
     public void calculateInitialVel() {
-        initialVel.x = (int)((App.input.getMousePos().x - newParticlePos.x + cameraPos.x) / vectorMulti);
-        initialVel.y = (int)((App.input.getMousePos().y - newParticlePos.y + cameraPos.y) / vectorMulti);
+        initialVel.x = (int)((App.controller.input.getMousePos().x - newParticlePos.x + cameraPos.x) / vectorMulti);
+        initialVel.y = (int)((App.controller.input.getMousePos().y - newParticlePos.y + cameraPos.y) / vectorMulti);
     }
 
     //UPDATE
@@ -167,7 +171,7 @@ public class Model {
         if (settingVel) {
             calculateInitialVel();
         } else {
-            App.input.updateNewParticlePos();
+            App.controller.input.updateNewParticlePos();
         }
         if (!paused || stepping) {
             SwingWorker<Void,Void> attractionWorker = new SwingWorker<>() {
@@ -184,7 +188,7 @@ public class Model {
     }
     
     public void updateCameraPos(double delta) {
-        HashMap<Integer,Boolean> movementMap = App.input.movementMap();
+        HashMap<Integer,Boolean> movementMap = App.controller.input.movementMap();
         double speedMultiplier = movementMap.get(KeyEvent.VK_SHIFT) ? 3 : 1;
         if (movementMap.get(KeyEvent.VK_A)) {
             cameraPos.x -= settings.get("Camera Speed") * speedMultiplier;
@@ -212,8 +216,8 @@ public class Model {
     
     public void attemptToDestroyNearbyParticles() {
         particles.removeIf(particle -> {
-            double dx = particle.x - (App.input.getMousePos().x + cameraPos.x);
-            double dy = particle.y - (App.input.getMousePos().y + cameraPos.y);
+            double dx = particle.x - (App.controller.input.getMousePos().x + cameraPos.x);
+            double dy = particle.y - (App.controller.input.getMousePos().y + cameraPos.y);
             double distance = Math.sqrt(dx*dx + dy*dy);
             return (distance - particle.radius) < mouseRadius;
         });
@@ -238,8 +242,8 @@ public class Model {
         Particle closestParticle = null;
         double closestDistance = Double.POSITIVE_INFINITY;
         for (Particle particle : particles) {
-            double dx = particle.x - (App.input.getMousePos().x + cameraPos.x);
-            double dy = particle.y - (App.input.getMousePos().y + cameraPos.y);
+            double dx = particle.x - (App.controller.input.getMousePos().x + cameraPos.x);
+            double dy = particle.y - (App.controller.input.getMousePos().y + cameraPos.y);
             double distance = Math.sqrt(dx*dx + dy*dy);
             if (distance < closestDistance) {
                 closestDistance = distance;

@@ -2,10 +2,8 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.util.HashMap;
 
-import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class Input implements MouseMotionListener, MouseListener, MouseWheelListener {

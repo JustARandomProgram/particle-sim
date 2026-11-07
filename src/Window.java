@@ -60,15 +60,8 @@ public class Window extends JFrame {
     // CANVAS CLASS
 
     public class Canvas extends JPanel {
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2d = (Graphics2D)g;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setColor(Color.BLACK);
-            g2d.fillRect(0, 0, width, height);
-            g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
-
-            // GRID LINES
+        
+        private void paintGridLines(Graphics2D g2d) {
             g2d.setColor(new Color(46, 46, 46));
             int currentHundred;
             for (currentHundred = App.controller.model.getCameraPos().x; currentHundred <= App.controller.model.getCameraPos().x + width; currentHundred++) {
@@ -81,8 +74,9 @@ public class Window extends JFrame {
             }
             double centerCircleRadius = 15;
             g2d.fill(new Ellipse2D.Double(-centerCircleRadius - App.controller.model.getCameraPos().x, -centerCircleRadius - App.controller.model.getCameraPos().y,2*centerCircleRadius,2*centerCircleRadius));
+        }
 
-            // PARTICLES/VISUALS
+        private void paintParticles(Graphics2D g2d) {
             for (Model.Particle particle : App.controller.model.getParticles()) {
                 g2d.setColor(Color.WHITE);
                 g2d.fillOval((int)(particle.x - particle.radius - App.controller.model.getCameraPos().x), 
@@ -105,7 +99,9 @@ public class Window extends JFrame {
                                            App.controller.model.getNewParticlePos().y - App.controller.model.getCameraPos().y));
             }
 
-            // MOUSE
+        }
+
+        private void paintMouse(Graphics2D g2d) {
             if (App.controller.input.isMouseVisible()) {
                 if (App.controller.model.destroying) {
                     g2d.setColor(new Color(255, 10, 10, 128));
@@ -121,6 +117,19 @@ public class Window extends JFrame {
                                 (int)(App.controller.model.getMouseRadius()*2.0));
                 }
             }
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2d = (Graphics2D)g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setColor(Color.BLACK);
+            g2d.fillRect(0, 0, width, height);
+            g2d.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+
+            paintGridLines(g2d);
+            paintParticles(g2d);
+            paintMouse(g2d);
         }
     }
 
